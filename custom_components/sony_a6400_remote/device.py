@@ -99,7 +99,13 @@ class SonyCameraDevice:
     async def _write(self, data: bytes) -> None:
         async with self._lock:
             client = await self._ensure_connected()
-            await client.write_gatt_char(COMMAND_CHAR_UUID, data, response=False)
+            # The camera expects "write with response" (this matches
+            # Android's WRITE_TYPE_DEFAULT, used by the reference
+            # implementation in CameraBLE.kt). Writing without a response
+            # is silently ignored by the camera even though the BLE write
+            # itself appears to succeed, which is why commands can seem to
+            # do nothing while the connection stays healthy.
+            await client.write_gatt_char(COMMAND_CHAR_UUID, data, response=True)
 
     def _notify(self) -> None:
         if self.on_update is not None:
