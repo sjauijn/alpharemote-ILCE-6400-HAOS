@@ -19,7 +19,7 @@ exposed over Bluetooth. What IS available:
 """
 from __future__ import annotations
 
-DOMAIN = "sony_a6400_remote"
+DOMAIN = "sony_alpha_remote"
 
 CONF_MAC = "mac"
 
