@@ -15,8 +15,6 @@ and Mark Kirschenbaum, and re-derived here from the
 - **Self-timer** — set a delay (1–60s) and fire the shutter after it
   counts down, same as the self-timer in the reference app
 - **Binary sensor** — Recording status
-- **Pairing from the UI** — Home Assistant bonds with the camera over
-  Bluetooth right from the config flow, no `bluetoothctl`/SSH needed
 
 There is no "focus mode" control (AF-S/AF-C/MF) because the camera does not
 expose that switch over Bluetooth — only AF-On and manual focus near/far
