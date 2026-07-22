@@ -1,8 +1,7 @@
-# Sony Alpha Remote BT — Home Assistant Integration
+# Sony Alpha Remote BLE — Home Assistant Integration
 
 Custom Home Assistant integration for **Sony Alpha (ILCE-*) cameras** with
-Bluetooth remote control, connected directly over Bluetooth LE — no phone,
-no official Sony app required. Protocol reverse engineered by
+Bluetooth remote control, connected directly over BLE. Protocol reverse engineered by
 [Coral](https://github.com/coral/freemote),
 [Greg Leeds](https://gregleeds.com/reverse-engineering-sony-camera-bluetooth/)
 and Mark Kirschenbaum, and re-derived here from the
@@ -15,11 +14,6 @@ and Mark Kirschenbaum, and re-derived here from the
 - **Self-timer** — set a delay (1–60s) and fire the shutter after it
   counts down, same as the self-timer in the reference app
 - **Binary sensor** — Recording status
-
-There is no "focus mode" control (AF-S/AF-C/MF) because the camera does not
-expose that switch over Bluetooth — only AF-On and manual focus near/far
-nudges are available, and manual focus nudges require the camera/lens to
-already be in MF or DMF mode via the physical switch.
 
 ## Compatibility
 
@@ -53,7 +47,7 @@ here.
 1. In the camera's menu, enable **Bluetooth Rmt Ctrl** (Menu > Network >
    Bluetooth) and keep the camera awake and nearby
 2. Settings → Devices & services → **Add Integration** → search for "Sony
-   Alpha Remote BT"
+   Alpha Remote BLE"
 3. If discovered, confirm your camera; otherwise pick it from the list or
    enter its Bluetooth address manually
 4. Home Assistant will pair (bond) with the camera — press Submit and
