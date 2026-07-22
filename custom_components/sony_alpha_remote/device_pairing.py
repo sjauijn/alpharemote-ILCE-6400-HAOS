@@ -1,23 +1,3 @@
-"""BLE pairing/bonding helper.
-
-The camera prompts for confirmation on its own screen (a "Pair with
-<host>?" dialog) during pairing. For BlueZ to deliver that prompt to
-anything, an Agent must be registered on org.bluez.AgentManager1 --
-normally provided as a side effect of running `bluetoothctl` or opening a
-desktop Bluetooth settings panel. On a headless Home Assistant OS host,
-neither is running, so bleak's `BleakClient.pair()` fails outright with
-`org.bluez.Error.AuthenticationFailed`: BlueZ has no agent to ask.
-
-This module registers a minimal, temporary agent (see bluez_agent.py) for
-the duration of the pairing attempt, so the whole flow works from the UI
-with no SSH/bluetoothctl step required.
-
-Note: BleakClient.pair() returns None on success and raises on failure
-(it does not return a boolean) as of bleak >= 1.0. A failed attempt can
-leave a half-bonded device entry in BlueZ, which would make a retry
-confusing (e.g. "already paired" when it plainly isn't usable), so on
-failure this module also calls unpair() to remove that stale entry.
-"""
 from __future__ import annotations
 
 import asyncio
@@ -37,21 +17,10 @@ _LOGGER = logging.getLogger(__name__)
 PAIR_TIMEOUT = 30.0
 UNPAIR_TIMEOUT = 10.0
 
-
 class CameraPairingError(Exception):
-    """Raised when pairing/bonding with the camera fails."""
-
+    pass
 
 async def async_pair_camera(ble_device: BLEDevice) -> None:
-    """Pair (bond) with the camera over BLE.
-
-    Registers a temporary auto-accept BlueZ pairing agent for the duration
-    of the call so the confirmation prompt shown on the camera's screen can
-    actually be answered, then calls BleakClient.pair() -- the same D-Bus
-    Pair() call `bluetoothctl pair` makes under the hood.
-
-    Raises CameraPairingError with a human-readable reason on failure.
-    """
     client = BleakClient(ble_device)
     connected = False
     try:
@@ -62,7 +31,6 @@ async def async_pair_camera(ble_device: BLEDevice) -> None:
                 try:
                     await client.pair()
                 except NotImplementedError as err:
-
 
                     _LOGGER.debug(
                         "pair() not implemented on this backend: %s", err
@@ -84,15 +52,12 @@ async def async_pair_camera(ble_device: BLEDevice) -> None:
         except BleakError:
             pass
 
-
 async def _async_cleanup_failed_pairing(client: BleakClient, connected: bool) -> None:
-    """Best-effort cleanup so a retry doesn't get stuck on a stale bond."""
     if not connected:
         return
     try:
         await client.unpair()
     except (BleakError, NotImplementedError, AttributeError):
-
 
         pass
     try:
@@ -100,27 +65,7 @@ async def _async_cleanup_failed_pairing(client: BleakClient, connected: bool) ->
     except BleakError:
         pass
 
-
 async def async_forget_camera(mac: str) -> None:
-    """Remove the camera's pairing/bond from BlueZ entirely.
-
-    This is the equivalent of running, over SSH::
-
-        bluetoothctl
-        remove <mac>
-
-    It talks to BlueZ directly over D-Bus (Adapter1.RemoveDevice), which
-    deletes the device's bonded/paired entry -- the same one that would
-    otherwise keep showing up in `bluetoothctl devices` after the
-    integration is removed from Home Assistant, blocking a clean re-pair
-    once the camera's own network settings are reset.
-
-    Safe to call even if the device was never paired, is powered off, or
-    is out of range: unlike unpair(), this does not require an active BLE
-    connection. Any failure is logged and swallowed -- this runs during
-    config entry removal, and a cleanup failure here should not prevent
-    the entry itself from being removed.
-    """
     bus: MessageBus | None = None
     try:
         async with asyncio.timeout(UNPAIR_TIMEOUT):
@@ -166,3 +111,4 @@ async def async_forget_camera(mac: str) -> None:
     finally:
         if bus is not None:
             bus.disconnect()
+

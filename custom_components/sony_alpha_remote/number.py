@@ -1,8 +1,3 @@
-"""Number platform for Sony Camera BLE Remote.
-
-Exposes the self-timer delay, matching the reference app's self-timer
-range (CameraActionPicker.kt: SeekBarTimeMap(10, 600), i.e. 1-60 seconds).
-"""
 from __future__ import annotations
 
 from homeassistant.components.number import NumberEntity, NumberMode
@@ -16,19 +11,15 @@ from .device import SonyCameraDevice
 
 PARALLEL_UPDATES = 0
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the number platform."""
     device: SonyCameraDevice = entry.runtime_data
     async_add_entities([SonyCameraSelfTimerNumber(device, entry)])
 
-
 class SonyCameraSelfTimerNumber(NumberEntity):
-    """Delay, in seconds, used by the self-timer shutter button."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -66,3 +57,4 @@ class SonyCameraSelfTimerNumber(NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         self._device.set_self_timer_seconds(round(value))
+

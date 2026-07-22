@@ -1,11 +1,3 @@
-"""BLE device wrapper for a Sony Camera Remote (for compatible models).
-
-Mirrors the connection/write pattern used by the app's original Android
-implementation (CameraBLE.kt): connect to a GATT server that must already be
-*bonded* at the OS level, write single-byte-prefixed commands to the command
-characteristic, and (optionally) subscribe to the status characteristic for
-recording state.
-"""
 from __future__ import annotations
 
 import asyncio
@@ -34,18 +26,14 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class SonyCameraState:
-    """In-memory state of the camera, filled in from status notifications."""
 
     def __init__(self) -> None:
         self.recording: bool = False
         self.self_timer_seconds: int = 3
         self.self_timer_remaining: int | None = None
 
-
 class SonyCameraDevice:
-    """Manages the BLE connection and command dispatch to the camera."""
 
     def __init__(self, ble_device: BLEDevice) -> None:
         self._ble_device = ble_device
@@ -94,7 +82,6 @@ class SonyCameraDevice:
 
     def _handle_status_notification(self, _handle: int, data: bytearray) -> None:
 
-
         if len(data) < 3:
             return
         tag = data[1]
@@ -106,7 +93,6 @@ class SonyCameraDevice:
     async def _write(self, data: bytes) -> None:
         async with self._lock:
             client = await self._ensure_connected()
-
 
             await client.write_gatt_char(COMMAND_CHAR_UUID, data, response=True)
 
@@ -121,7 +107,6 @@ class SonyCameraDevice:
             await self._client.disconnect()
         self._client = None
 
-
     async def _button(self, code: int, pressed: bool) -> None:
         await self._write(bytes([0x01, code | (0x01 if pressed else 0x00)]))
 
@@ -135,9 +120,7 @@ class SonyCameraDevice:
         await asyncio.sleep(CLICK_HOLD_SECONDS)
         await self._button(code, False)
 
-
     async def async_shutter(self) -> None:
-        """Full shutter press: half-press then full-press then release."""
         await self._button(BTN_SHUTTER_HALF, True)
         await self._button(BTN_SHUTTER_FULL, True)
         await asyncio.sleep(CLICK_HOLD_SECONDS)
@@ -145,15 +128,12 @@ class SonyCameraDevice:
         await self._button(BTN_SHUTTER_HALF, False)
 
     async def async_af_on(self) -> None:
-        """Emulate holding the AF-On button briefly (autofocus trigger)."""
         await self._click_button(BTN_AF_ON)
 
     async def async_record_toggle(self) -> None:
-        """Emulate the record button (start/stop video recording)."""
         await self._click_button(BTN_RECORD)
 
     async def async_c1(self) -> None:
-        """Emulate the C1 custom button."""
         await self._click_button(BTN_C1)
 
     async def async_zoom_in(self, step: int = DEFAULT_JOG_STEP) -> None:
@@ -167,29 +147,20 @@ class SonyCameraDevice:
         await self._jog(JOG_ZOOM_OUT, False)
 
     async def async_focus_near(self, step: int = DEFAULT_JOG_STEP) -> None:
-        """Nudge manual focus nearer. Camera/lens must already be in MF/DMF."""
         await self._jog(JOG_FOCUS_NEAR, True, step)
         await asyncio.sleep(CLICK_HOLD_SECONDS)
         await self._jog(JOG_FOCUS_NEAR, False)
 
     async def async_focus_far(self, step: int = DEFAULT_JOG_STEP) -> None:
-        """Nudge manual focus farther. Camera/lens must already be in MF/DMF."""
         await self._jog(JOG_FOCUS_FAR, True, step)
         await asyncio.sleep(CLICK_HOLD_SECONDS)
         await self._jog(JOG_FOCUS_FAR, False)
-
 
     def set_self_timer_seconds(self, seconds: int) -> None:
         self.state.self_timer_seconds = max(1, min(60, seconds))
         self._notify()
 
     async def async_start_self_timer(self) -> None:
-        """Count down locally, then fire a full shutter press.
-
-        This mirrors the reference app's self-timer (CACountdown before the
-        shutter step list in CameraAction.kt): the camera has no BLE command
-        for a self-timer, the delay is purely client-side.
-        """
         if self._self_timer_task is not None and not self._self_timer_task.done():
             return
         self._self_timer_task = asyncio.create_task(self._async_run_self_timer())
@@ -217,3 +188,4 @@ class SonyCameraDevice:
         finally:
             self.state.self_timer_remaining = None
             self._notify()
+

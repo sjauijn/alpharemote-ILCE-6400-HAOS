@@ -1,10 +1,3 @@
-"""Button platform for Sony Camera BLE Remote.
-
-Each button emulates one physical remote-control button press. There is no
-"focus mode" button because the camera does not expose AF-S/AF-C/MF
-switching over Bluetooth -- only AF-On (autofocus trigger) and manual focus
-near/far nudges are available. See const.py for details.
-"""
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
@@ -21,13 +14,10 @@ from .device import SonyCameraDevice
 
 PARALLEL_UPDATES = 0
 
-
 @dataclass(frozen=True, kw_only=True)
 class SonyCameraButtonDescription(ButtonEntityDescription):
-    """Describes a Sony camera remote button."""
 
     action: Callable[[SonyCameraDevice], Awaitable[None]]
-
 
 BUTTON_DESCRIPTIONS: tuple[SonyCameraButtonDescription, ...] = (
     SonyCameraButtonDescription(
@@ -82,22 +72,18 @@ BUTTON_DESCRIPTIONS: tuple[SonyCameraButtonDescription, ...] = (
     ),
 )
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the button platform."""
     device: SonyCameraDevice = entry.runtime_data
     async_add_entities(
         SonyCameraButton(device, entry, description)
         for description in BUTTON_DESCRIPTIONS
     )
 
-
 class SonyCameraButton(ButtonEntity):
-    """Representation of a single camera remote button."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -132,3 +118,4 @@ class SonyCameraButton(ButtonEntity):
 
     async def async_press(self) -> None:
         await self.entity_description.action(self._device)
+

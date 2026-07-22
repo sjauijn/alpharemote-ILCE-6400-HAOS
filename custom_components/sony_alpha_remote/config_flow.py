@@ -1,9 +1,3 @@
-"""Config flow for Sony Camera BLE Remote integration.
-
-Pairing/bonding with the camera is performed here, from the UI, using BLE's
-"Just Works" bonding (Sony's remote protocol needs no PIN). No SSH or
-bluetoothctl required.
-"""
 from __future__ import annotations
 
 import logging
@@ -24,9 +18,7 @@ from .device_pairing import CameraPairingError, async_pair_camera
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class SonyCameraConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Sony Camera BLE Remote."""
 
     VERSION = 1
 
@@ -35,7 +27,6 @@ class SonyCameraConfigFlow(ConfigFlow, domain=DOMAIN):
         self._name: str | None = None
 
     async def _async_do_pair(self) -> ConfigFlowResult:
-        """Attempt to pair with self._mac and create the entry on success."""
         ble_device = async_ble_device_from_address(
             self.hass, self._mac, connectable=True
         )
@@ -67,7 +58,6 @@ class SonyCameraConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_bluetooth(
         self, discovery_info: BluetoothServiceInfoBleak
     ) -> ConfigFlowResult:
-        """Handle discovery via Bluetooth."""
         await self.async_set_unique_id(format_mac(discovery_info.address))
         self._abort_if_unique_id_configured()
         self._mac = discovery_info.address
@@ -78,7 +68,6 @@ class SonyCameraConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_bluetooth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Confirm discovered device, then move to pairing."""
         if user_input is None:
             return self.async_show_form(
                 step_id="bluetooth_confirm",
@@ -89,7 +78,6 @@ class SonyCameraConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle a flow initiated by the user: pick or type in a MAC."""
         errors: dict[str, str] = {}
 
         discovered: dict[str, str] = {}
@@ -118,19 +106,11 @@ class SonyCameraConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_pair(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Perform BLE pairing/bonding with the camera.
-
-        This is where the actual bonding happens -- equivalent to
-        `bluetoothctl pair <mac>` but triggered from the UI. Sony's remote
-        protocol uses Just Works bonding, so no PIN entry step is needed;
-        the only requirement is that the camera has 'Bluetooth Rmt Ctrl'
-        enabled and is awake/in range.
-        """
         if user_input is None:
-
 
             return self.async_show_form(
                 step_id="pair",
                 description_placeholders={"name": self._name or self._mac},
             )
         return await self._async_do_pair()
+

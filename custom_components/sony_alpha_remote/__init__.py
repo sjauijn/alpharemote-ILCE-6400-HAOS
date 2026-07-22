@@ -1,4 +1,3 @@
-"""The Sony Camera BLE Remote integration."""
 from __future__ import annotations
 
 import logging
@@ -24,9 +23,7 @@ PLATFORMS: list[Platform] = [
 
 type SonyCameraConfigEntry = ConfigEntry[SonyCameraDevice]
 
-
 async def async_setup_entry(hass: HomeAssistant, entry: SonyCameraConfigEntry) -> bool:
-    """Set up Sony Camera BLE Remote from a config entry."""
     mac = entry.data[CONF_MAC]
 
     ble_device = bluetooth.async_ble_device_from_address(
@@ -74,25 +71,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: SonyCameraConfigEntry) -
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
-
 async def async_unload_entry(hass: HomeAssistant, entry: SonyCameraConfigEntry) -> bool:
-    """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok and entry.runtime_data is not None:
         await entry.runtime_data.async_disconnect()
     return unload_ok
 
-
 async def async_remove_entry(hass: HomeAssistant, entry: SonyCameraConfigEntry) -> None:
-    """Clean up after the config entry is removed from Home Assistant.
-
-    Unlike async_unload_entry (also called on reload/restart), this only
-    runs when the user deletes the integration entry entirely. That's the
-    right moment to also drop the camera's BlueZ pairing/bond -- otherwise
-    it lingers in `bluetoothctl devices` and blocks a clean re-pair after
-    the camera's own network settings are reset, forcing a manual
-    `bluetoothctl remove <mac>` over SSH.
-    """
     mac = entry.data.get(CONF_MAC)
     if mac:
         await async_forget_camera(mac)
+
