@@ -1,6 +1,6 @@
 {
   "domain": "sony_alpha_remote",
-  "name": "Sony Alpha Remote BT",
+  "name": "Sony Alpha Remote BLE",
   "codeowners": ["@sjauijn"],
   "config_flow": true,
   "dependencies": ["bluetooth_adapters"],
