@@ -40,7 +40,7 @@ here.
 
 1. HACS → Integrations → ⋮ menu (top right) → **Custom repositories**
 2. Add this repository URL, category **Integration**
-3. Install **Sony Alpha Remote BT**, restart Home Assistant
+3. Install **Sony Alpha Remote BLE**, restart Home Assistant
 
 ## Setup
 
