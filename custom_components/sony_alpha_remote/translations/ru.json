@@ -45,7 +45,7 @@
       "self_timer_seconds": { "name": "Задержка таймера" }
     },
     "sensor": {
-      "self_timer_remaining": { "name": "Осталось до срабатывания" }
+      "self_timer_remaining": { "name": "Осталось до срабатывания таймера" }
     }
   }
 }
